@@ -1,24 +1,31 @@
 package com.example.anti_fraud_system.Model;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 public class UserDetailsImpl implements UserDetails {
     private final String username;
     private final String name;
     private final String password;
 
+    private final List<GrantedAuthority> rolesAndAuthorities;
+    private final Boolean isAccountNonLocked;
+
     public UserDetailsImpl(User user) {
         this.username = user.getUsername();
         this.name = user.getName();
         this.password = user.getPassword();
+        this.rolesAndAuthorities =List.of(new SimpleGrantedAuthority("ROLE_"+user.getRole()));
+        this.isAccountNonLocked = user.isAccountNonLocked();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return rolesAndAuthorities;
     }
 
     @Override
@@ -38,7 +45,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return isAccountNonLocked;
     }
 
     @Override

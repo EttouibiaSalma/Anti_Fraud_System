@@ -30,18 +30,22 @@ public class WebSecurityConfigurerImpl extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http
+                .authorizeRequests()
                 .mvcMatchers("/api/auth/user", "/actuator/shutdown").permitAll()
-                .mvcMatchers(HttpMethod.POST, "/api/antifraud/transaction").authenticated()
-                . mvcMatchers(HttpMethod.GET, "/api/auth/list").authenticated()// manage access
-                .mvcMatchers(HttpMethod.DELETE, "/api/auth/user/**").authenticated()
+                .mvcMatchers(HttpMethod.POST, "/api/antifraud/transaction").hasRole("MERCHANT")
+                .antMatchers(HttpMethod.GET, "/api/auth/list").hasAnyRole("SUPPORT", "ADMINISTRATOR")// manage access
+                .antMatchers(HttpMethod.DELETE, "/api/auth/user/**").hasRole("ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.PUT, "/api/auth/access").hasRole("ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.PUT, "/api/auth/role").hasRole("ADMINISTRATOR")
                 .and()
-                .csrf().disable().headers().frameOptions().disable() // for Postman, the H2 console
+                .httpBasic()
+                .authenticationEntryPoint(new RestAuthenticationEntryPoint())// Handles auth error
                 .and()
-                .httpBasic()// Handles auth error
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // no session
+                .sessionManagement()// no session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http
+                .csrf().disable().headers().frameOptions().disable(); // for Postman, the H2 console
     }
 
     @Bean

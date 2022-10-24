@@ -1,5 +1,6 @@
 package com.example.anti_fraud_system.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.Entity;
@@ -12,6 +13,8 @@ import javax.validation.constraints.NotBlank;
 public class User implements Comparable<User>{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    //Long provides us with the largest ID values
+    //possible without the risk of possible overflows in the data.
     private Long id;
     @NotBlank(message = "username is mandatory")
     private String username;
@@ -21,14 +24,20 @@ public class User implements Comparable<User>{
     @NotBlank(message = "password is mandatory")
     private String password;
 
+    private String role;
+
+    @JsonIgnore
+    private boolean isAccountNonLocked = false;
+
+
     public User() {
     }
 
-    public User(Long id, String username, String name, String password) {
-        this.id = id;
+    public User(String username, String name, String password, String role) {
         this.username = username;
         this.name = name;
         this.password = password;
+        this.role = role;
     }
 
     public Long getId() {
@@ -63,8 +72,24 @@ public class User implements Comparable<User>{
         this.password = password;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public boolean isAccountNonLocked() {
+        return isAccountNonLocked;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        isAccountNonLocked = accountNonLocked;
+    }
+
     @Override
-    public int compareTo(User u) {
+    public int compareTo(User u){
         return this.getId().compareTo(u.getId());
     }
 }

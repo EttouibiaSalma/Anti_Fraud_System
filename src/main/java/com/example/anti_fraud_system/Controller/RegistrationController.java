@@ -12,20 +12,29 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping
 public class RegistrationController {
 
     @Autowired
     UserService service;
 
     @PostMapping("/api/auth/user")
-    public ResponseEntity<User> register(@RequestBody @Valid User user){
+    public ResponseEntity<Map<String, Object>> register(@RequestBody @Valid User user){
         return new ResponseEntity<>(service.register(user), HttpStatus.CREATED);
     }
 
     @GetMapping("/api/auth/list")
-    public ResponseEntity<List<User>> listUsers(){
+    public ResponseEntity<List<Map<String, Object>>> listUsers(){
         return new ResponseEntity<>(service.list(), HttpStatus.OK);
+    }
+
+    @PutMapping("/api/auth/role")
+    public ResponseEntity<Map<String, Object>> update(@RequestBody Map<String, String> newRole){
+
+        return new ResponseEntity<>(service.changeRole(newRole), HttpStatus.OK);
+    }
+    @PutMapping("/api/auth/access")
+    public ResponseEntity<Map<String, String>> updateStatus(@RequestBody Map<String, String> status){
+        return new ResponseEntity<>(service.changeStatus(status), HttpStatus.OK);
     }
 
     @DeleteMapping("/api/auth/user/{username}")
