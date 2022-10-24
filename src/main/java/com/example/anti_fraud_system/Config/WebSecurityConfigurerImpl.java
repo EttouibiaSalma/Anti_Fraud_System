@@ -38,6 +38,7 @@ public class WebSecurityConfigurerImpl extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, "/api/auth/user/**").hasRole("ADMINISTRATOR")
                 .mvcMatchers(HttpMethod.PUT, "/api/auth/access").hasRole("ADMINISTRATOR")
                 .mvcMatchers(HttpMethod.PUT, "/api/auth/role").hasRole("ADMINISTRATOR")
+                .mvcMatchers("/api/antifraud/**").hasRole("SUPPORT")
                 .and()
                 .httpBasic()
                 .authenticationEntryPoint(new RestAuthenticationEntryPoint())// Handles auth error

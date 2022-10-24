@@ -5,25 +5,20 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Entity
-public class Transaction {
+public class SuspiciousIp implements Comparable<SuspiciousIp>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull
-    private Long amount;
-
     @NotBlank
     private String ip;
 
-    public Transaction() {
+    public SuspiciousIp() {
     }
 
-    public Transaction(Long id, Long amount, String ip, String number) {
+    public SuspiciousIp(Long id, String ip) {
         this.id = id;
-        this.amount = amount;
         this.ip = ip;
     }
 
@@ -35,19 +30,16 @@ public class Transaction {
         this.id = id;
     }
 
-    public Long getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Long amount) {
-        this.amount = amount;
-    }
-
     public String getIp() {
         return ip;
     }
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    @Override
+    public int compareTo(SuspiciousIp suspiciousIp){
+        return this.getId().compareTo(suspiciousIp.getId());
     }
 }
