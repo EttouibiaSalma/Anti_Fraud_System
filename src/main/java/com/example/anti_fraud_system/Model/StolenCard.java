@@ -5,29 +5,22 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Entity
-public class Transaction {
+public class StolenCard implements Comparable<StolenCard>{
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull
-    private Long amount;
-
-    @NotBlank
-    private String ip;
 
     @NotBlank
     private String number;
 
-    public Transaction() {
+    public StolenCard() {
     }
 
-    public Transaction(Long id, Long amount, String ip, String number) {
+    public StolenCard(Long id, String number) {
         this.id = id;
-        this.amount = amount;
-        this.ip = ip;
         this.number = number;
     }
 
@@ -39,27 +32,16 @@ public class Transaction {
         this.id = id;
     }
 
-    public Long getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Long amount) {
-        this.amount = amount;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
     public String getNumber() {
         return number;
     }
 
     public void setNumber(String number) {
         this.number = number;
+    }
+
+    @Override
+    public int compareTo(StolenCard card) {
+        return this.getId().compareTo(card.getId());
     }
 }

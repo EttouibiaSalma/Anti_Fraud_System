@@ -1,6 +1,7 @@
 package com.example.anti_fraud_system.Service;
 
 import com.example.anti_fraud_system.Model.Transaction;
+import com.example.anti_fraud_system.Repository.StolenCardRepository;
 import com.example.anti_fraud_system.Repository.SuspiciousIpRepository;
 import com.example.anti_fraud_system.Repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,11 @@ public class TransactionService {
     @Autowired
     SuspiciousIpService suspiciousIpService;
 
+    @Autowired
+    StolenCardRepository stolenCardRepository;
+    @Autowired
+    StolenCardsService stolenCardsService;
+
     List<String> errors;
     String result;
     String info;
@@ -33,6 +39,7 @@ public class TransactionService {
         errors = new LinkedList<>();
 
         verifyTransactionIp(transaction.getIp());
+        verifyTransactionCard(transaction.getNumber());
         verifyTransactionAmount(transaction.getAmount());
         errors.sort((String::compareToIgnoreCase));
         info = errors.stream().map((e) -> e ).collect(Collectors.joining(", "));
@@ -45,6 +52,16 @@ public class TransactionService {
         }
         if (suspiciousIpRepository.findSuspiciousIpByIp(ip).isPresent()){
             errors.add("ip");
+            result = "PROHIBITED";
+        }
+    }
+
+    public void verifyTransactionCard(String cardNum){
+        if (!stolenCardsService.verifyCardNumber(cardNum)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        else if (stolenCardRepository.findStolenCardByNumber(cardNum).isPresent()){
+            errors.add("card-number");
             result = "PROHIBITED";
         }
     }
