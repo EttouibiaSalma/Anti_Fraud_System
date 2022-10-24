@@ -1,5 +1,6 @@
 package com.example.anti_fraud_system.Service;
 
+import com.example.anti_fraud_system.Enum.Roles;
 import com.example.anti_fraud_system.Model.User;
 import com.example.anti_fraud_system.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,10 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
         if (repository.findAll().size() == 0){
-            user.setRole("ADMINISTRATOR");
+            user.setRole(Roles.ADMINISTRATOR);
             user.setAccountNonLocked(true);
         } else {
-            user.setRole("MERCHANT");
+            user.setRole(Roles.MERCHANT);
             user.setAccountNonLocked(false);
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -45,16 +46,24 @@ public class UserService {
         mapList.stream().sorted();
         return mapList;
     }
-
     public Map<String, Object> changeRole(Map<String, String> assignedRole){
         Optional<User> u = repository.findUserByUsernameIgnoreCase(assignedRole.get("username"));
+        Roles role;
+        try {
+            role = Roles.valueOf(assignedRole.get("role"));
+        }
+        catch (IllegalArgumentException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         if (!u.isPresent()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        } else if (assignedRole.get("role").equals(u.get().getRole())) {
+        } else if (role.equals(u.get().getRole())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
-        } else if (assignedRole.get("role").equalsIgnoreCase("SUPPORT") || assignedRole.get("role").equalsIgnoreCase("MERCHANT")) {
+        } else if (role.equals(Roles.SUPPORT) ||
+                role.equals(Roles.MERCHANT)) {
             User updatedUser = u.get();
-            updatedUser.setRole(assignedRole.get("role"));
+            updatedUser.setRole(Roles.valueOf(assignedRole.get("role")));
             repository.saveAndFlush(updatedUser);
             return Map.of("id", updatedUser.getId(), "username", updatedUser.getUsername(),
                     "name", updatedUser.getName(), "role", updatedUser.getRole());
@@ -68,7 +77,7 @@ public class UserService {
         Optional<User> u = repository.findUserByUsernameIgnoreCase(assignedStatus.get("username"));
         if (!u.isPresent()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        } else if (u.get().getRole().equals("ADMINISTRATOR")) {
+        } else if (u.get().getRole().equals(Roles.ADMINISTRATOR)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         } else {
             User user = u.get();
@@ -88,5 +97,4 @@ public class UserService {
         repository.delete(user.get());
         return Map.of("username", username, "status", "Deleted successfully!");
     }
-
 }

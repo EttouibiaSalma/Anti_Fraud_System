@@ -14,15 +14,17 @@ import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/antifraud")
-public class TransactionController {
+@RequestMapping("/api/antifraud/transaction")
+class TransactionController{
 
     @Autowired
     TransactionService transactionService;
 
-    @PostMapping("/transaction")
+    @PostMapping
     public ResponseEntity<Map<String, Object>> postTransaction(@RequestBody @Valid Transaction transaction){
         return new ResponseEntity<>(transactionService.postTransaction(transaction), HttpStatus.OK);
     }
+
+}
 
 }

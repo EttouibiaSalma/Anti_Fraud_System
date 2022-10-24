@@ -1,5 +1,6 @@
 package com.example.anti_fraud_system.Model;
 
+import com.example.anti_fraud_system.Enum.Roles;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,7 +25,7 @@ public class User implements Comparable<User>{
     @NotBlank(message = "password is mandatory")
     private String password;
 
-    private String role;
+    private Roles role;
 
     @JsonIgnore
     private boolean isAccountNonLocked = false;
@@ -33,7 +34,7 @@ public class User implements Comparable<User>{
     public User() {
     }
 
-    public User(String username, String name, String password, String role) {
+    public User(String username, String name, String password, Roles role) {
         this.username = username;
         this.name = name;
         this.password = password;
@@ -72,16 +73,16 @@ public class User implements Comparable<User>{
         this.password = password;
     }
 
-    public String getRole() {
+    public boolean isAccountNonLocked() {
+        return isAccountNonLocked;
+    }
+
+    public Roles getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Roles role) {
         this.role = role;
-    }
-
-    public boolean isAccountNonLocked() {
-        return isAccountNonLocked;
     }
 
     public void setAccountNonLocked(boolean accountNonLocked) {
