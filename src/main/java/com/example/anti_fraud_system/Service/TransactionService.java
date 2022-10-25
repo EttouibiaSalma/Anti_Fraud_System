@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 @Service
 public class TransactionService {
 
+    Long MAX_ALLOWED = 200L;
+    Long MAX_MANUAL_PROCESSING = 1500L;
+
     @Autowired
     TransactionRepository transactionRepository;
     @Autowired
@@ -67,24 +70,24 @@ public class TransactionService {
         }
     }
 
-    public void verifyTransactionAmount(Long amount){
+    private void verifyTransactionAmount(Long amount){
         if (amount == null || amount < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        } else if (amount > 1500) {
+        } else if (amount > MAX_MANUAL_PROCESSING) {
             errors.add("amount");
             result = "PROHIBITED";
-        } else if (amount > 200 && errors.size() < 1) {
+        } else if (amount > MAX_ALLOWED && errors.size() < 1) {
             errors.add("amount");
-            result = result.equals("PROHIBITED") ? "PROHIBITED" : "MANUAL_PROCESSING";
-        } else if (errors.size() < 1) {
+            result = "MANUAL_PROCESSING";
+        } else if (errors.size() < 1 ) {
             result = "ALLOWED";
             errors.add("none");
         }
     }
 
-    public void verifyTransactionRegion(Transaction transaction){
-        List<Transaction> transactionsWithinLastHour = transactionRepository.findAllByDateBetween(transaction.getDate(),
-                transaction.getDate().minusHours(1));
+    private void verifyTransactionRegion(Transaction transaction){
+        List<Transaction> transactionsWithinLastHour = transactionRepository.findByNumberAndDateBetween(transaction.getNumber(),
+                transaction.getDate().minusHours(1), transaction.getDate());
         List<Regions> regions = transactionsWithinLastHour.stream().map(Transaction::getRegion).filter((region)->!region.equals(transaction.getRegion())).distinct().collect(Collectors.toList());
         if (regions.size() == 2){
             result = "MANUAL_PROCESSING";
@@ -95,10 +98,10 @@ public class TransactionService {
         }
     }
 
-    public void verifyTransactionIpCorrelation(Transaction transaction){
-        List<Transaction> transactionsWithinLastHour = transactionRepository.findAllByDateBetween(transaction.getDate(),
-                transaction.getDate().minusHours(1));
-        List<String> ips = transactionsWithinLastHour.stream().map((t) -> t.getIp()).filter((ip)-> !ip.equals(transaction.getIp())).distinct().collect(Collectors.toList());
+    private void verifyTransactionIpCorrelation(Transaction transaction){
+        List<Transaction> transactionsWithinLastHour = transactionRepository.findByNumberAndDateBetween(transaction.getNumber()
+                , transaction.getDate().minusHours(1), transaction.getDate());
+        List<String> ips = transactionsWithinLastHour.stream().map(Transaction::getIp).filter((ip)-> !ip.equals(transaction.getIp())).distinct().collect(Collectors.toList());
         if (ips.size() == 2){
             result = "MANUAL_PROCESSING";
             errors.add("ip-correlation");
@@ -111,4 +114,42 @@ public class TransactionService {
         }
     }
 
+    public Transaction addTransactionFeedback(Map<String, String> feedback) {
+        Transaction transaction = transactionRepository.findById(Long.valueOf(feedback.get("transactionId")))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!feedback.get("feedback").equals("MANUAL_PROCESSING")
+                && !feedback.get("feedback").equals("ALLOWED")
+                && !feedback.get("feedback").equals("PROHIBITED")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        } else if (transaction.getResult().equals(feedback.get("feedback"))) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+        } else if (!transaction.getFeedback().isBlank() || transaction.getFeedback().equals(feedback.get("feedback"))){
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
+        } else {
+            if ((feedback.get("feedback").equals("ALLOWED") && transaction.getResult().equals("MANUAL_PROCESSING")) ||
+                    (feedback.get("feedback").equals("ALLOWED") && transaction.getResult().equals("PROHIBITED"))){
+                MAX_ALLOWED = increaseNewLimit(transaction.getAmount(), MAX_ALLOWED);
+            } else if ((transaction.getResult().equals("ALLOWED") && feedback.get("feedback").equals("MANUAL_PROCESSING")) ||
+                    (transaction.getResult().equals("ALLOWED") && feedback.get("feedback").equals("PROHIBITED"))) {
+                MAX_ALLOWED = decreaseNewLimit(transaction.getAmount(), MAX_ALLOWED);
+            } else if ((transaction.getResult().equals("PROHIBITED") && feedback.get("feedback").equals("ALLOWED")) ||
+                    (transaction.getResult().equals("PROHIBITED") && feedback.get("feedback").equals("MANUAL_PROCESSING"))) {
+                MAX_MANUAL_PROCESSING = increaseNewLimit(transaction.getAmount(), MAX_MANUAL_PROCESSING);
+            } else if ( (feedback.get("feedback").equals("PROHIBITED") && transaction.getResult().equals("ALLOWED"))
+                    || (feedback.get("feedback").equals("PROHIBITED") && transaction.getResult().equals("MANUAL_PROCESSING")) ){
+                MAX_MANUAL_PROCESSING = decreaseNewLimit(transaction.getAmount(), MAX_MANUAL_PROCESSING);
+            }
+            transaction.setFeedback(feedback.get("feedback"));
+            transactionRepository.save(transaction);
+            return transaction;
+        }
+    }
+
+    private Long increaseNewLimit(Long amount, Long limit){
+        return (long) Math.ceil(0.8 * limit + 0.2 * amount);
+    }
+
+    private Long decreaseNewLimit(Long amount, Long limit){
+        return (long) Math.ceil(0.8 * limit - 0.2 * amount);
+    }
 }

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long transactionId;
     @NotNull
     private Long amount;
 
@@ -30,24 +30,29 @@ public class Transaction {
     @NotNull
     private LocalDateTime date;
 
+    private String result;
+    private String feedback;
+
     public Transaction() {
     }
 
-    public Transaction(Long id, Long amount, String ip, String number, Regions region, LocalDateTime date) {
-        this.id = id;
+    public Transaction(Long transactionId, Long amount, String ip, String number, Regions region, LocalDateTime date, String result, String feedback) {
+        this.transactionId = transactionId;
         this.amount = amount;
         this.ip = ip;
         this.number = number;
         this.region = region;
         this.date = date;
+        this.result = result;
+        this.feedback = feedback;
     }
 
-    public Long getId() {
-        return id;
+    public Long getTransactionId() {
+        return transactionId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTransactionId(Long transactionId) {
+        this.transactionId = transactionId;
     }
 
     public Long getAmount() {
@@ -88,6 +93,22 @@ public class Transaction {
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(String feedback) {
+        this.feedback = feedback;
     }
 }
 

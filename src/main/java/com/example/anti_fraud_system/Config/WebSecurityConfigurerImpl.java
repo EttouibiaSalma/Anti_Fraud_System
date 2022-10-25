@@ -37,7 +37,7 @@ public class WebSecurityConfigurerImpl extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.GET, "/api/auth/list").hasAnyRole("SUPPORT", "ADMINISTRATOR")// manage access
                 .mvcMatchers(HttpMethod.DELETE, "/api/auth/user/**").hasRole("ADMINISTRATOR")
                 .mvcMatchers(HttpMethod.PUT, "/api/auth/access").hasRole("ADMINISTRATOR")
-                //.mvcMatchers(HttpMethod.PUT, "/api/auth/role").hasRole("ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.PUT, "/api/auth/role").hasRole("ADMINISTRATOR")
                 .mvcMatchers("/api/antifraud/**").hasRole("SUPPORT")
                 .and()
                 .httpBasic()
