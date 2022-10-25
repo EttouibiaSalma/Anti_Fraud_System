@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
-public class Transaction {
+public class Transaction implements Comparable<Transaction>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
@@ -109,6 +109,11 @@ public class Transaction {
 
     public void setFeedback(String feedback) {
         this.feedback = feedback;
+    }
+
+    @Override
+    public int compareTo(Transaction transaction) {
+        return this.getTransactionId().compareTo(transaction.getTransactionId());
     }
 }
 

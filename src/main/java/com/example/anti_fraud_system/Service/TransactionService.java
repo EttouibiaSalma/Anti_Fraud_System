@@ -10,9 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -151,5 +149,25 @@ public class TransactionService {
 
     private Long decreaseNewLimit(Long amount, Long limit){
         return (long) Math.ceil(0.8 * limit - 0.2 * amount);
+    }
+
+    public List<Transaction> getAllTransactions() {
+        if (transactionRepository.findAll().size() == 0){
+            return new ArrayList<>();
+        }
+        List<Transaction> transactionList = transactionRepository.findAll();
+        Collections.sort(transactionList);
+        return transactionList;
+    }
+
+    public List<Transaction> getTransactionsByCardNumber(String cardNumber) {
+        if (!stolenCardsService.verifyCardNumber(cardNumber)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        List<Transaction> transactions = transactionRepository.findAllByNumber(cardNumber);
+        if (transactions.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return transactions;
     }
 }

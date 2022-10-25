@@ -8,10 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/antifraud/transaction")
+@RequestMapping("/api/antifraud")
 class TransactionController{
 
     @Autowired
@@ -27,6 +28,14 @@ class TransactionController{
         return new ResponseEntity<>(transactionService.addTransactionFeedback(feedback), HttpStatus.OK);
     }
 
-}
+    @GetMapping("/history")
+    public ResponseEntity<List<Transaction>> getTransactionHistory(){
+        return new ResponseEntity<>(transactionService.getAllTransactions(), HttpStatus.OK);
+    }
+
+    @GetMapping("/history/{number}")
+    public ResponseEntity<List<Transaction>> getTransactionHistoryByCardNumber(@PathVariable String number){
+        return new ResponseEntity<>(transactionService.getTransactionsByCardNumber(number), HttpStatus.OK);
+    }
 
 }
